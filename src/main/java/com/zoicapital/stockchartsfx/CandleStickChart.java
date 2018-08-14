@@ -15,12 +15,13 @@ package com.zoicapital.stockchartsfx;
  limitations under the License.
  */
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import javafx.animation.FadeTransition;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -33,6 +34,7 @@ import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tooltip;
+import javafx.scene.input.PickResult;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.shape.Line;
@@ -42,27 +44,24 @@ import javafx.util.Duration;
 /**
  * A candlestick chart is a style of bar-chart used primarily to describe price
  * movements of a security, derivative, or currency over time.
- *
+ * <p>
  * The Data Y value is used for the opening price and then the close, high and
  * low values are stored in the Data's extra value property using a
  * CandleStickExtraValues object.
- * 
- * 
  */
 public class CandleStickChart extends XYChart<String, Number> {
 
-    SimpleDateFormat sdf = new SimpleDateFormat("HH:mm");
+    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     protected static final Logger logger = Logger.getLogger(CandleStickChart.class.getName());
     protected int maxBarsToDisplay;
-    protected ObservableList<XYChart.Series<String, Number>> dataSeries;
     protected BarData lastBar;
     protected NumberAxis yAxis;
     protected CategoryAxis xAxis;
 
-    
-    
+
+    ObservableList<XYChart.Series<String, Number>> dataSeries;
+
     /**
-     * 
      * @param title The chart title
      * @param bars  The bars data to display in the chart.
      */
@@ -70,11 +69,10 @@ public class CandleStickChart extends XYChart<String, Number> {
         this(title, bars, Integer.MAX_VALUE);
     }
 
-    
+
     /**
-     * 
-     * @param title The chart title
-     * @param bars The bars to display in the chart
+     * @param title            The chart title
+     * @param bars             The bars to display in the chart
      * @param maxBarsToDisplay The maximum number of bars to display in the chart.
      */
     public CandleStickChart(String title, List<BarData> bars, int maxBarsToDisplay) {
@@ -84,10 +82,10 @@ public class CandleStickChart extends XYChart<String, Number> {
     /**
      * Construct a new CandleStickChart with the given axis.
      *
-     * @param title The chart title
-     * @param xAxis The x axis to use
-     * @param yAxis The y axis to use
-     * @param bars The bars to display on the chart
+     * @param title            The chart title
+     * @param xAxis            The x axis to use
+     * @param yAxis            The y axis to use
+     * @param bars             The bars to display on the chart
      * @param maxBarsToDisplay The maximum number of bars to display on the chart.
      */
     public CandleStickChart(String title, CategoryAxis xAxis, NumberAxis yAxis, List<BarData> bars, int maxBarsToDisplay) {
@@ -118,20 +116,35 @@ public class CandleStickChart extends XYChart<String, Number> {
 
         setData(dataSeries);
         lastBar = sublist.get(sublist.size() - 1);
+        Series<String, Number> ss = dataSeries.get(0);
+        ObservableList<Data<String, Number>> data = ss.getData();
+
+        for (Data<String, Number> d : data) {
+            final Data newdata = d;
+            Node node = newdata.getNode();
+            node.setOnMouseEntered(e -> {
+                System.out.println(d);
+            });
+
+        }
+
+
     }
 
-    
+
     /**
      * Defines a formatter to use when formatting the y-axis values.
+     *
      * @param formatter The formatter to use when formatting the y-axis values.
      */
     public void setYAxisFormatter(DecimalAxisFormatter formatter) {
         yAxis.setTickLabelFormatter(formatter);
     }
 
-    
+
     /**
      * Appends a new bar on to the end of the chart.
+     *
      * @param bar The bar to append to the chart
      */
     public void addBar(BarData bar) {
@@ -139,10 +152,10 @@ public class CandleStickChart extends XYChart<String, Number> {
         if (dataSeries.get(0).getData().size() >= maxBarsToDisplay) {
             dataSeries.get(0).getData().remove(0);
         }
-
-        int datalength = dataSeries.get(0).getData().size();
-        dataSeries.get(0).getData().get(datalength - 1).setYValue(bar.getOpen());
-        dataSeries.get(0).getData().get(datalength - 1).setExtraValue(bar);
+        Series<String, Number> stringNumberSeries = dataSeries.get(0);
+        int datalength = stringNumberSeries.getData().size();
+        stringNumberSeries.getData().get(datalength - 1).setYValue(bar.getOpen());
+        stringNumberSeries.getData().get(datalength - 1).setExtraValue(bar);
         String label = sdf.format(bar.getDateTime().getTime());
         logger.log(Level.INFO, "Adding bar with actual time:  {0}", bar.getDateTime().getTime());
         logger.log(Level.INFO, "Adding bar with formated time: {0}", label);
@@ -150,14 +163,14 @@ public class CandleStickChart extends XYChart<String, Number> {
         lastBar = new BarData(bar.getDateTime(), bar.getClose(), bar.getClose(), bar.getClose(), bar.getClose(), 0);
         Data<String, Number> data = new XYChart.Data<>(label, lastBar.getOpen(), lastBar);
         dataSeries.get(0).getData().add(data);
-        
-        
-        
+
+
     }
 
-    
+
     /**
      * Update the "Last" price of the most recent bar
+     *
      * @param price The Last price of the most recent bar.
      */
     public void updateLast(double price) {
@@ -173,8 +186,36 @@ public class CandleStickChart extends XYChart<String, Number> {
         }
     }
 
-    
-    
+    public void update(List<DailyStock> dailyStocks) {
+        List<BarData> sublist = dailyStocks.stream().map(d -> {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            Date parse = null;
+            try {
+                parse = sdf.parse(d.getDate());
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            GregorianCalendar tgg = new GregorianCalendar();
+            tgg.setTime(parse);
+            BarData barData = new BarData(tgg, Double.parseDouble(d.getTOPEN()), Double.parseDouble(d.getHIGH())
+                    , Double.parseDouble(d.getLOW()), Double.parseDouble(d.getTCLOSE()), 1);
+            return barData;
+        }).collect(Collectors.toList());
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        for (BarData bar : sublist) {
+            String label = "";
+            label = sdf.format(bar.getDateTime().getTime());
+            series.getData().add(new XYChart.Data<>(label, bar.getOpen(), bar));
+            logger.log(Level.INFO, "Adding bar with date/time: {0}", bar.getDateTime().getTime());
+            logger.log(Level.INFO, "Adding bar with price: {0}", bar.getOpen());
+        }
+        dataSeries = FXCollections.observableArrayList(series);
+        this.dataSeries = dataSeries;
+        setData(dataSeries);
+    }
+
+
     protected List<BarData> getSubList(List<BarData> bars, int maxBars) {
         List<BarData> sublist;
         if (bars.size() > maxBars) {
@@ -185,6 +226,7 @@ public class CandleStickChart extends XYChart<String, Number> {
     }
 
     // -------------- METHODS ------------------------------------------------------------------------------------------
+
     /**
      * Called to update and layout the content for the plot
      */
@@ -317,8 +359,8 @@ public class CandleStickChart extends XYChart<String, Number> {
      * Create a new Candle node to represent a single data item
      *
      * @param seriesIndex The index of the series the data item is in
-     * @param item The data item to create node for
-     * @param itemIndex The index of the data item in the series
+     * @param item        The data item to create node for
+     * @param itemIndex   The index of the data item in the series
      * @return New candle node to represent the give data item
      */
     private Node createCandle(int seriesIndex, final Data item, int itemIndex) {
@@ -379,6 +421,7 @@ public class CandleStickChart extends XYChart<String, Number> {
         }
     }
 
+
     /**
      * Candle node used for drawing a candle
      */
@@ -429,10 +472,15 @@ public class CandleStickChart extends XYChart<String, Number> {
 
         private void updateStyleClasses() {
             getStyleClass().setAll("candlestick-candle", seriesStyleClass, dataStyleClass);
+//            highLowLine.getStyleClass().setAll("candlestick-line", seriesStyleClass, dataStyleClass,
+//                    openAboveClose ? "open-above-close" : "close-above-open");
+//            bar.getStyleClass().setAll("candlestick-bar", seriesStyleClass, dataStyleClass,
+//                    openAboveClose ? "open-above-close" : "close-above-open");
+
             highLowLine.getStyleClass().setAll("candlestick-line", seriesStyleClass, dataStyleClass,
-                    openAboveClose ? "open-above-close" : "close-above-open");
+                    openAboveClose ? "close-above-open" : "open-above-close");
             bar.getStyleClass().setAll("candlestick-bar", seriesStyleClass, dataStyleClass,
-                    openAboveClose ? "open-above-close" : "close-above-open");
+                    openAboveClose ?  "close-above-open" : "open-above-close");
         }
     }
 
