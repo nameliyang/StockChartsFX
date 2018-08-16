@@ -36,8 +36,18 @@ public class DailyStock {
 
     private Double dea;
 
+    private Double macd;
+
     public Double getDea() {
         return dea;
+    }
+
+    public Double getMacd() {
+        return macd;
+    }
+
+    public void setMacd(Double macd) {
+        this.macd = macd;
     }
 
     public void setDea(Double dea) {
@@ -115,10 +125,15 @@ public class DailyStock {
     public String toString() {
         return "DailyStock{" +
                 "date='" + date + '\'' +
-                ", TCLOSE='" + TCLOSE + '\'' +
-                ", HIGH='" + HIGH + '\'' +
-                ", LOW='" + LOW + '\'' +
                 ", TOPEN='" + TOPEN + '\'' +
+                ", HIGH='" + HIGH + '\'' +
+                ", TCLOSE='" + TCLOSE + '\'' +
+                ", LOW='" + LOW + '\'' +
+                ", ema12=" + ema12 +
+                ", ema26=" + ema26 +
+                ", diff=" + diff +
+                ", dea=" + dea +
+                ", macd=" + macd +
                 '}';
     }
 }

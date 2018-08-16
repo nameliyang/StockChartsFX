@@ -1,3 +1,4 @@
+import com.zoicapital.stockchartsfx.Compass;
 import com.zoicapital.stockchartsfx.DailyStock;
 import com.zoicapital.stockchartsfx.StockHistory;
 import javafx.application.Application;
@@ -29,41 +30,13 @@ public class LineCharTest extends Application{
     {
 
         Date nowDate = new Date();
-        Date before5Date = stepMonth(nowDate,-5);
+        Date before5Date = stepMonth(nowDate,-9);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         try {
             System.out.println("start = "+sdf.format(before5Date));
             System.out.println( "end = "+sdf.format(nowDate));
-            dailyStocks = StockHistory.getDailyStocks("601985", sdf.format(before5Date), sdf.format(nowDate));
-            DailyStock preStock = dailyStocks.get(0);
-            for(int i = 1;i<dailyStocks.size();i++){
-                DailyStock dailyStock = dailyStocks.get(i);
-                Double ema12;
-                Double ema26;
-                Double dea ;
-                Double diff ;
-                if(i ==1 ){
-                      ema12  =  preStock.getClose()*11/13 + dailyStock.getClose()*2/13;
-                      ema26  =  preStock.getClose()*25/27 + dailyStock.getClose()*2/27;
-                      diff =   ema12 - ema26;
-                      dea   =  0 + diff*  2/10;
-                }else{
-                      ema12 =   preStock.getEma12()*11/13+ dailyStock.getClose()*2/13;
-                      ema26  =  preStock.getEma26()*25/27 + dailyStock.getClose()*2/27;
-                      diff = ema12 - ema26;
-                      dea   =  preStock.getDea() *8/10 +diff*2/10;
-                }
-
-                dailyStock.setDea(dea);
-                dailyStock.setDiff(diff);
-                dailyStock.setEma12(ema12);
-                dailyStock.setEma26(ema26);
-                dailyStock.setDiff(diff);
-
-                preStock = dailyStock;
-                System.out.println("ema12: "+ema12+",ema26:"+ema26+"，diff:"+diff+"dea "+dea);
-            }
-
+            dailyStocks = Compass.getDateStocks("000970", nowDate, before5Date, sdf);
+            dailyStocks = dailyStocks.subList(50,dailyStocks.size());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -133,7 +106,7 @@ public class LineCharTest extends Application{
         for(DailyStock dailyStock:dailyStocks){
             Double value  =   0.0;
             if(dailyStock.getDiff()!=null){
-                value = dailyStock.getDiff() - dailyStock.getDea();
+                value = dailyStock.getMacd();
             }
             data.getData().add(new XYChart.Data<>(dailyStock.getDate(),value*4));
         }
