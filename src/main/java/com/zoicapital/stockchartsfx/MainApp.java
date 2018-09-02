@@ -87,7 +87,7 @@ public class MainApp extends Application implements EventHandler<MouseEvent> {
             String str = (String) selectedItems.get(0);
             String code = str.substring(0,str.indexOf('('));
             try {
-                List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code, "20180606", "20180808");
+                List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code);
                 candleStickChart.update(dailyStocks);
             } catch (IOException e1) {
                 e1.printStackTrace();
