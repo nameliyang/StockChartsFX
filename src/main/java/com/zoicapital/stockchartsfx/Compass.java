@@ -34,7 +34,9 @@ public class Compass {
     }
 
     public static List<DailyStock>    getDateStocks(String code ,Date nowDate, Date before5Date, SimpleDateFormat sdf) throws IOException {
-        List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code, sdf.format(before5Date), sdf.format(nowDate));
+       // List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code, sdf.format(before5Date), sdf.format(nowDate));
+        List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code,nowDate,before5Date);
+
         DailyStock preStock = dailyStocks.get(0);
         for(int i = 1;i<dailyStocks.size();i++){
             DailyStock dailyStock = dailyStocks.get(i);

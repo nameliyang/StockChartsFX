@@ -19,7 +19,6 @@ public class DailyStock {
      */
     private String TCLOSE;
 
-
     /**
      * 最低价
      */

@@ -1,4 +1,3 @@
-import com.zoicapital.stockchartsfx.Compass;
 import com.zoicapital.stockchartsfx.DailyStock;
 import com.zoicapital.stockchartsfx.StockHistory;
 import javafx.application.Application;
@@ -14,6 +13,7 @@ import javafx.scene.shape.Line;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,18 +24,51 @@ import java.util.stream.Stream;
 
 public class LineCharTest extends Application{
 
-    private static final  String URL_PATTERN  = "%sapi.finance.%s/%s/?code=%s&type=last";
 
     List<DailyStock> dailyStocks  = null;
     {
-
-        Date nowDate = new Date();
-        Date before5Date = stepMonth(nowDate,-9);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        Date nowDate = null;
+        try {
+            nowDate = sdf.parse("2018086");
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        Date before5Date = stepMonth(nowDate,-9);
+
         try {
             System.out.println("start = "+sdf.format(before5Date));
             System.out.println( "end = "+sdf.format(nowDate));
-            dailyStocks = Compass.getDateStocks("000970", nowDate, before5Date, sdf);
+
+         //   dailyStocks = Compass.getDateStocks("600113", nowDate, before5Date, sdf);
+            dailyStocks=    StockHistory.getDailyStocks("600113");
+            DailyStock preStock = dailyStocks.get(0);
+            for(int i = 1;i<dailyStocks.size();i++){
+                DailyStock dailyStock = dailyStocks.get(i);
+                Double ema12;
+                Double ema26;
+                Double dea ;
+                Double diff ;
+                if(i ==1 ){
+                    ema12  =  preStock.getClose()*11/13 + dailyStock.getClose()*2/13;
+                    ema26  =  preStock.getClose()*25/27 + dailyStock.getClose()*2/27;
+                    diff =   ema12 - ema26;
+                    dea   =  0 + diff*  2/10;
+                }else{
+                    ema12 =   preStock.getEma12()*11/13+ dailyStock.getClose()*2/13;
+                    ema26  =  preStock.getEma26()*25/27 + dailyStock.getClose()*2/27;
+                    diff = ema12 - ema26;
+                    dea   =  preStock.getDea() *8/10 +diff*2/10;
+                }
+                dailyStock.setDea(dea);
+                dailyStock.setDiff(diff);
+                dailyStock.setEma12(ema12);
+                dailyStock.setEma26(ema26);
+                dailyStock.setMacd(diff -dea );
+                preStock = dailyStock;
+            }
+
             dailyStocks = dailyStocks.subList(50,dailyStocks.size());
         } catch (IOException e) {
             e.printStackTrace();
@@ -50,24 +83,6 @@ public class LineCharTest extends Application{
         return c.getTime();
     }
     public static void main(String[] args) throws IOException {
-//        String code = "600458";
-//        String urlStr = String.format(URL_PATTERN,"http://","ifeng.com","akdaily",code2Symbol(code));
-//        URL url = new URL(urlStr);
-//        URLConnection urlConnection = url.openConnection();
-//        InputStream inputStream = urlConnection.getInputStream();
-//        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//        int bytes = 0;
-//        while((bytes = inputStream.read())!=-1){
-//            baos.write((bytes));
-//        }
-//        inputStream.close();
-//        String content = new String(baos.toByteArray());
-//        System.out.println(content);
-//        JSONObject jsonObject  = (JSONObject) JSONObject.parse(content);
-//        JSONArray record = jsonObject.getJSONArray("record");
-//        for(int i = 0;i<record.size();i++){
-//            record.get
-//        }
         launch(args);
     }
 
@@ -80,12 +95,10 @@ public class LineCharTest extends Application{
         XYChart.Series<String,Number> closeSeries = new XYChart.Series<>();
         buildData(closeSeries);
         XYChart.Series<String,Number> openSeries = new XYChart.Series<>();
-        buildOpenData(openSeries);
-
-
+//        buildOpenData(openSeries);
         XYChart.Series<String,Number> macdSeries = new XYChart.Series<>();
         buildMacdData(macdSeries);
-        ObservableList<XYChart.Series<String,Number>> data  = FXCollections.observableArrayList(closeSeries,openSeries,macdSeries);
+        ObservableList<XYChart.Series<String,Number>> data  = FXCollections.observableArrayList(closeSeries,macdSeries);
 
         LineChart<String,Number> lineChart = new LineChart<String,Number> (categoryAxis,numberAxis);
         lineChart.setOnMouseMoved(new EventHandler<MouseEvent>() {
@@ -93,10 +106,12 @@ public class LineCharTest extends Application{
             public void handle(MouseEvent event) {
             }
         });
+
+
         lineChart.setData(data);
         lineChart.setCreateSymbols(false);
         Scene scene = new Scene(lineChart,1500,800);
-
+        scene.getStylesheets().add("Chart.css");
         stage.setScene(scene);
         stage.show();
 
