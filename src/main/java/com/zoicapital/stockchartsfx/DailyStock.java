@@ -1,5 +1,8 @@
 package com.zoicapital.stockchartsfx;
 
+import lombok.Data;
+
+@Data
 public class DailyStock {
 
     private String date;

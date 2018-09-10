@@ -6,8 +6,12 @@ import com.brucezee.jspider.Result;
 import com.brucezee.jspider.Spider;
 import com.brucezee.jspider.processor.PageProcessor;
 import org.apache.commons.io.IOUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -20,13 +24,29 @@ import java.net.URL;
  */
 public class ActiveStock{
 
-    public static void main(String[] args) throws Exception {
-    //    System.out.println(get("http://guba.eastmoney.com/list,000970.html"));
+    private static final Logger logger = LoggerFactory.getLogger(ActiveStock.class);
 
-        Spider.create()                                                 //创建爬虫实例
-                .addStartRequests("http://guba.eastmoney.com/list,000970.html")           //添加起始url
-                .setPageProcessor(new HelloWorldPageProcessor())        //设置页面解析器
-                .start();
+    public static void main(String[] args) throws Exception {
+
+        Document doc = Jsoup.connect("http://guba.eastmoney.com/list,000970.html").get();
+        System.out.println(doc);
+
+//        Spider.create()                                                 //创建爬虫实例
+//                .addStartRequests("http://guba.eastmoney.com/list,000970.html")           //添加起始url
+//                .setPageProcessor(new HelloWorldPageProcessor())        //设置页面解析器
+//                .start();
+    }
+
+    public static String  get(String path ) throws Exception {
+        URL url = new URL(path);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setConnectTimeout(5 * 1000);
+        conn.setRequestMethod("GET");
+        InputStream inStream = conn.getInputStream();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        IOUtils.copy(inStream,bos);
+        String result = new String(bos.toByteArray(), "UTF-8");
+        return result;
     }
 
     public static class HelloWorldPageProcessor implements PageProcessor {
@@ -56,17 +76,7 @@ public class ActiveStock{
         }
     }
 
-    public static String  get(String path ) throws Exception {
-        URL url = new URL(path);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setConnectTimeout(5 * 1000);
-        conn.setRequestMethod("GET");
-        InputStream inStream = conn.getInputStream();
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        IOUtils.copy(inStream,bos);
-        String result = new String(bos.toByteArray(), "UTF-8");
-        return result;
-    }
+
 
 
 
