@@ -1,52 +1,73 @@
 package com.zoicapital.stockchartsfx;
 
-import javafx.application.Application;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.NumberBinding;
-import javafx.beans.property.DoubleProperty;
-import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.scene.Scene;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.LineChart;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.stage.Stage;
-import org.apache.commons.io.FileUtils;
-import sun.misc.IOUtils;
+import com.zoicapital.stockchartsfx.stock.StockFilter;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-import java.io.*;
-import java.nio.charset.Charset;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Test {
 
-
-//    @Override
-//    public void start(Stage primaryStage) throws Exception {
-//        CategoryAxis axis = new CategoryAxis();
-//        NumberAxis yxis = new NumberAxis();
-//        LineChart<String,Number> lineChart = new LineChart<>(axis,yxis);
-//        XYChart.Series<String, Number> series = new XYChart.Series<>();
-//        series.getData().add(new XYChart.Data<>("20180813",1.5));
-//        series.getData().add(new XYChart.Data<>("20180814",1.1));
-//        series.getData().add(new XYChart.Data<>("20180816",-2));
-//        series.getData().add(new XYChart.Data<>("20180816",-1.5));
-//        series.getData().add(new XYChart.Data<>("20180817",0));
-//        series.getData().add(new XYChart.Data<>("20180818",1.5));
-//        lineChart.getData().add(series);
-//        Scene scene = new Scene(lineChart);
-//        primaryStage.setScene(scene);
-//        primaryStage.show();
-//
-//
-//    }
     public static void main(String[] args) throws IOException {
-        List<String> list = FileUtils.readLines(new File("stockactive.txt"), Charset.forName("utf-8"));
-        System.out.println(list);
 
+        List<Stock> stockList = getStockList(e ->{
+            if(e.getCode().startsWith("2")|| e.getCode().startsWith("1")||e.getCode().startsWith("5")){
+                return false;
+            }
+            return true;
+        });
+
+        stockList.forEach(e ->System.out.println(e));
+
+
+        System.out.println(stockList.size());
     }
+
+    public static List<Stock> getStockList(StockFilter stockFilter) throws IOException {
+        List<Stock> stockList = getStockList();
+        return stockList.stream().filter(e -> stockFilter.isAccept(e)).collect(Collectors.toList());
+    }
+
+
+    public static List<Stock>  getStockList() throws IOException {
+        String url = "http://quote.eastmoney.com/stocklist.html";
+        Document doc = Jsoup.connect(url).get();
+        Element element = doc.getElementById("quotesearch");
+        Elements ul = element.getElementsByTag("ul");
+        //sh
+        Elements shStocks = ul.get(0).getElementsByTag("li");
+        List<Stock> listStock = new ArrayList<>();
+
+        for (Element shStock : shStocks) {
+            String codeValue = shStock.getElementsByAttributeValue("target", "_blank").get(0).text();
+            String[] codeValueArray = parseCodeName(codeValue);
+            listStock.add(StockBuilder.aStock().buildCode(codeValueArray[1]).buildName(codeValueArray[0]).buildSource("sh").build());
+        }
+        //sz
+        Elements szStocks = ul.get(1).getElementsByTag("li");
+        for (Element szStock : szStocks) {
+            String codeValue = szStock.getElementsByAttributeValue("target", "_blank").get(0).text();
+            String[] codeValueArray = parseCodeName(codeValue);
+            listStock.add(StockBuilder.aStock().buildCode(codeValueArray[1]).buildName(codeValueArray[0]).buildSource("sz").build());
+        }
+        return listStock;
+    }
+
+    public static String[] parseCodeName(String codeName) {
+        String[] rtn = new String[2];
+        int index = codeName.indexOf('(');
+        rtn[0] = codeName.substring(0, index);
+        rtn[1] = codeName.substring(index + 1, codeName.length() - 1);
+        return rtn;
+    }
+
 }
+
+
 
 

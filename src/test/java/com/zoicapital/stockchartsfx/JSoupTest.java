@@ -23,15 +23,11 @@ public class JSoupTest {
     static final  ExecutorService executorService = Executors.newFixedThreadPool(10);
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        String start = "09-11";
-        String end = "09-11";
-
+        String start = "09-12";
+        String end = "09-12";
         List<Map<String, String>> stockCodes = StockSpider.getStockCodes(Stream.of('2', '5').collect(Collectors.toList()));
         stockCodes = stockCodes.stream().filter(map -> !map.get("name").contains("ST")).collect(Collectors.toList());
         final  List<Map<String, String>> tmp = stockCodes;
-
-
-
         List<Map<String,String>> articles = new ArrayList<>();
         CountDownLatch cdl = new CountDownLatch(tmp.size());
         new Thread(()->{
@@ -67,21 +63,15 @@ public class JSoupTest {
         cdl.await();
         System.out.println("-------------------------------------------");
         System.out.println("-------------------------------------------");
-        System.out.println("-------------------------------------------");
-        System.out.println("-------------------------------------------");
-        System.out.println("-------------------------------------------");
-        System.out.println("-------------------------------------------");
         articles.sort((e1,e2)->e1.get("articls").compareTo(e2.get("articls")));
         articles.forEach(e -> System.out.println(e));
 
     }
 
     private static void getArticles(String code, String start,String end, Integer pageNum ,List<Article> list) throws IOException {
-        if(pageNum>20){
+        if(pageNum>10){
             throw new RuntimeException(code+"太多了");
         }
-
-
         String url ="http://guba.eastmoney.com/list,%s,f_%s.html";
         Document doc =   Jsoup.connect(String.format(url,code,pageNum)).get();
         Element articles = doc.getElementById("articlelistnew");

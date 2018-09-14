@@ -1,18 +1,22 @@
 package com.zoicapital.stockchartsfx;
 
+import lombok.Data;
+
+@Data
 public class Stock {
 
-    private String date;
+    private String source;
 
-    private Double open;
+    private String code;
 
-    private Double high;
+    private String name;
 
-    private Double low;
-
-    private Double close;
-
-    private Integer volume;
-
-    private Integer  amount;
+    @Override
+    public String toString() {
+        return "Stock{" +
+                "source='" + source + '\'' +
+                ", code='" + code + '\'' +
+                ", name='" + name + '\'' +
+                '}';
+    }
 }
