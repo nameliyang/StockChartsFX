@@ -5,7 +5,7 @@ package com.zoicapital.stockchartsfx;
  * @Date: 2018/9/14 12:51
  */
 public final class StockBuilder {
-    private String source;
+    private String exchange;
     private String code;
     private String name;
 
@@ -16,8 +16,8 @@ public final class StockBuilder {
         return new StockBuilder();
     }
 
-    public StockBuilder buildSource(String source) {
-        this.source = source;
+    public StockBuilder buildExchange(String source) {
+        this.exchange = source;
         return this;
     }
 
@@ -33,7 +33,7 @@ public final class StockBuilder {
 
     public Stock build() {
         Stock stock = new Stock();
-        stock.setSource(source);
+        stock.setExchange(exchange);
         stock.setCode(code);
         stock.setName(name);
         return stock;
