@@ -1,12 +1,15 @@
 package com.zoicapital.stockchartsfx;
 
+import com.alibaba.fastjson.annotation.JSONField;
 import lombok.Data;
 
+import java.util.Date;
 import java.util.List;
 
 @Data
 public class Stock {
-
+    @JSONField(format="yyyy-MM-dd")
+    private Date date;
     private String exchange;
 
     private String code;
@@ -108,6 +111,7 @@ public class Stock {
      *
      */
     private Integer followNum;
+
 
     @Override
     public String toString() {

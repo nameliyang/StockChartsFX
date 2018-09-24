@@ -44,9 +44,10 @@ public class StockClient {
                     stock.setHIGH(object.getString("high"));
                     stock.setLOW(object.getString("low"));
                     stock.setDate(object.getString("date"));
+                    stock.setCode(code);
                     stocks.add(stock);
                 }
-                calcMACD(stocks);
+               // calcMACD(stocks);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -85,6 +86,8 @@ public class StockClient {
 
     public static void main(String[] args) {
         List<DailyStock> dailyStock = getDailyStock("000970", "2017-07-01", "2018-09-01");
+
+        System.out.println(dailyStock);
         Double money = 100000.0;
         List<DailyStock> stocks = dailyStock.subList(50,dailyStock.size());
         Double nowMoney = 100000.0;

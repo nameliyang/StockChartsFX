@@ -11,13 +11,13 @@ import com.mongodb.client.MongoDatabase;
 import com.zoicapital.stockchartsfx.Stock;
 import com.zoicapital.stockchartsfx.Stocks;
 import org.bson.Document;
+
 import java.util.Arrays;
 import java.util.List;
 
 public class MongoTest {
 
     public static void main(String[] args) {
-
         MongoClient mongoClient =  MongoClients.create(
                 MongoClientSettings.builder()
                         .applyToClusterSettings(builder ->
@@ -31,7 +31,8 @@ public class MongoTest {
             }
             return true;
         }).fillBasicBatch().fillFollowNum().value();
-        for (Stock stock:stocks){
+
+        for (Stock stock : stocks){
             col.insertOne(Document.parse(JSONObject.toJSONString(stock)));
         }
     }

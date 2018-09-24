@@ -16,6 +16,7 @@ import org.springframework.cglib.beans.BeanCopier;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -28,6 +29,7 @@ public class Stocks {
     public   Stocks  getStockList(StockFilter stockFilter) {
         try {
             stockList = getStocks();
+            stockList.forEach(e->e.setDate(new Date()));
             if(stockFilter!=null){
                 stockList  = stockList.stream().filter(e -> stockFilter.isAccept(e)).collect(Collectors.toList());
             }
@@ -118,13 +120,16 @@ public class Stocks {
                 return null;
             }
             data  = (JSONObject) json.getJSONArray("data").get(0);
+            if(data==null){
+                System.out.println(" is null?");
+            }
         }catch (Exception e){
             System.out.println(e);
             try {
                 TimeUnit.SECONDS.sleep(3);
             } catch (InterruptedException e1) {
             }
-            getBasic(stock);
+            return getBasic(stock);
         }
         return data.toJavaObject(Basic.class);
     }
