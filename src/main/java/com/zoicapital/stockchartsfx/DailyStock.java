@@ -40,6 +40,12 @@ public class DailyStock {
 
     private Double macd;
 
+    private String code;
+
+    private String name;
+
+    private Long articleCount;
+
     public Double getDea() {
         return dea;
     }

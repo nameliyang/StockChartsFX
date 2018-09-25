@@ -1,8 +1,13 @@
 package com.ly.quant;
 
 import lombok.Data;
+import lombok.ToString;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
+@ToString
 public class Article {
 
     private Integer readCount;
@@ -14,6 +19,22 @@ public class Article {
     private String code ;
 
     private String name;
+
+    private String cmtURL;
+
+    private String author;
+
+
+    private String updateDate;
+
+    private String createDate;
+
+    private String content;
+
+    private String createTime;
+
+    private String media;
+    private List<Comment> comments = new ArrayList<>();
 
     public Article() {
     }
