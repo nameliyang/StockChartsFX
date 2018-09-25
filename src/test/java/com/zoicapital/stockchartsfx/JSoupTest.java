@@ -23,8 +23,8 @@ public class JSoupTest {
     static final  ExecutorService executorService = Executors.newFixedThreadPool(10);
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        String start = "09-12";
-        String end = "09-12";
+        String start = "09-25";
+        String end = "09-25";
         List<Map<String, String>> stockCodes = StockSpider.getStockCodes(Stream.of('2', '5').collect(Collectors.toList()));
         stockCodes = stockCodes.stream().filter(map -> !map.get("name").contains("ST")).collect(Collectors.toList());
         final  List<Map<String, String>> tmp = stockCodes;
