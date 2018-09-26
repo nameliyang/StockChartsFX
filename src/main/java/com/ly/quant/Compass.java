@@ -1,11 +1,11 @@
-package com.zoicapital.stockchartsfx;
+package com.ly.quant;
+
+import com.zoicapital.stockchartsfx.DailyStock;
+import com.zoicapital.stockchartsfx.StockSpider;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -19,23 +19,34 @@ public class Compass {
             System.out.println(stock);
         }
         Date  end = new Date();
-        Date start = stepMonth(end, -9);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+        Date start = stepMonth(end, -11);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 
-        List<DailyStock> dateStocks = getDateStocks("000970",end, start, sdf);
+        List<DailyStock> dateStocks = getDateStocks("000970",sdf.format(start), sdf.format(end));
+        if(dateStocks.size()>36){
+            dateStocks = dateStocks.subList(30,dateStocks.size());
+        }
 
-        for(DailyStock dailyStock:dateStocks){
-            doStagegy(dailyStock);
+
+        for(int i = 0;i<dateStocks.size();i++){
+            doStagegy(dateStocks.get(i));
         }
     }
 
+    static boolean goOn = true;
     private static void doStagegy(DailyStock dailyStock) {
+        Double macd = dailyStock.getMacd();
+        if(macd<0 && !goOn){
+            goOn = true;
+        }
+        if(goOn){
+
+        }
         System.out.println(dailyStock);
     }
 
-    public static List<DailyStock>    getDateStocks(String code ,Date nowDate, Date before5Date, SimpleDateFormat sdf) throws IOException {
-       // List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code, sdf.format(before5Date), sdf.format(nowDate));
-        List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code,nowDate,before5Date);
+    public static List<DailyStock>    getDateStocks(String code, String start, String end) throws IOException {
+        List<DailyStock> dailyStocks = StockHistory.getDailyStockByTushare(code,start,end);
 
         DailyStock preStock = dailyStocks.get(0);
         for(int i = 1;i<dailyStocks.size();i++){

@@ -1,4 +1,4 @@
-package com.zoicapital.stockchartsfx;
+package com.zoicapital.stockchartsfx.stock;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -6,8 +6,8 @@ import com.squareup.okhttp.Call;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
-import com.zoicapital.stockchartsfx.bean.Basic;
-import com.zoicapital.stockchartsfx.stock.StockFilter;
+import com.zoicapital.stockchartsfx.Stock;
+import com.zoicapital.stockchartsfx.StockBuilder;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -174,11 +174,6 @@ public class Stocks {
             return true;
         }).fillBasicBatch().fillFollowNum().value();
         stocks.forEach(e-> System.out.println(e));
-//        Stock stock = new Stock();
-//        stock.setExchange("sz");
-//        stock.setCode("000970");
-//        Integer content = new Stocks().getFollowNum(stock);
-//        System.out.println(content);
     }
 
 

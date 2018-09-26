@@ -1,4 +1,4 @@
-package com.zoicapital.stockchartsfx.bean;
+package com.zoicapital.stockchartsfx.stock;
 
 
 import lombok.Data;

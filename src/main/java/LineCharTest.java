@@ -1,5 +1,5 @@
 import com.zoicapital.stockchartsfx.DailyStock;
-import com.zoicapital.stockchartsfx.StockHistory;
+import com.ly.quant.StockHistory;
 import javafx.application.Application;
 import javafx.beans.InvalidationListener;
 import javafx.beans.Observable;
@@ -42,7 +42,7 @@ public class LineCharTest extends Application{
             System.out.println( "end = "+sdf.format(nowDate));
 
          //   dailyStocks = Compass.getDateStocks("600113", nowDate, before5Date, sdf);
-            dailyStocks=    StockHistory.getDailyStocks("600113");
+            dailyStocks=    StockHistory.getDailyStockByTushare("600113","2018-01-01","2018-09-26");
             DailyStock preStock = dailyStocks.get(0);
             for(int i = 1;i<dailyStocks.size();i++){
                 DailyStock dailyStock = dailyStocks.get(i);
@@ -123,7 +123,7 @@ public class LineCharTest extends Application{
             if(dailyStock.getDiff()!=null){
                 value = dailyStock.getMacd();
             }
-            data.getData().add(new XYChart.Data<>(dailyStock.getDate(),value*4));
+            data.getData().add(new XYChart.Data<>(dailyStock.getDate(),value*5));
         }
     }
 

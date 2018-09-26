@@ -16,8 +16,8 @@ limitations under the License.
  */
 
 
+import com.ly.quant.StockHistory;
 import javafx.application.Application;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -87,7 +87,7 @@ public class MainApp extends Application implements EventHandler<MouseEvent> {
             String str = (String) selectedItems.get(0);
             String code = str.substring(0,str.indexOf('('));
             try {
-                List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code);
+                List<DailyStock> dailyStocks = StockHistory.getDailyStocks(code,"2018-01-01","2018-09-26");
                 candleStickChart.update(dailyStocks);
             } catch (IOException e1) {
                 e1.printStackTrace();

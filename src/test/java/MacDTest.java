@@ -1,5 +1,5 @@
 import com.zoicapital.stockchartsfx.DailyStock;
-import com.zoicapital.stockchartsfx.StockHistory;
+import com.ly.quant.StockHistory;
 import com.zoicapital.stockchartsfx.StockSpider;
 
 import java.io.IOException;

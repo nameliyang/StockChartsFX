@@ -9,7 +9,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.zoicapital.stockchartsfx.Stock;
-import com.zoicapital.stockchartsfx.Stocks;
+import com.zoicapital.stockchartsfx.stock.Stocks;
 import org.bson.Document;
 
 import java.util.Arrays;

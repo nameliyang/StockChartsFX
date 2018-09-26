@@ -11,7 +11,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.zoicapital.stockchartsfx.DailyStock;
 import com.zoicapital.stockchartsfx.Stock;
-import com.zoicapital.stockchartsfx.Stocks;
+import com.zoicapital.stockchartsfx.stock.Stocks;
 import org.apache.commons.collections.CollectionUtils;
 import org.bson.Document;
 
