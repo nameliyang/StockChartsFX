@@ -1,6 +1,7 @@
 package com.zoicapital.stockchartsfx.active;
 
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.collect.Lists;
 import com.ly.quant.Article;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.ServerAddress;
@@ -36,40 +37,19 @@ public class ArticleMongo {
             }
             return true;
         }).value();
+        PageParse pageParse = new PageParse();
+        stocks = stocks.stream().filter(e->e.getCode().equals("600015")).collect(Collectors.toList());
         //600015
         for(Stock stock:stocks){
-            PageParse pageParse = new PageParse();
-            CountDownLatch cdl = new CountDownLatch(100);
-            for(int i = 1;i<=100;i++){
-                final int j = i;
-                try{
-                    new Thread(){
-                        @Override
-                        public void run() {
-                           try{
-                               List<Article> articles = pageParse.parse(stock.getCode(), stock.getCode(), j);
-                               List<Document> docs = new ArrayList<>();
-                               docs = articles.stream().map(a->Document.parse(JSONObject.toJSONString(a))).collect(Collectors.toList());
-                               document.insertMany(docs);
-                               try {
-                                   Thread.sleep(10);
-                               } catch (InterruptedException e) {
-                                   e.printStackTrace();
-                               }
-                           } catch (IOException e) {
-                               e.printStackTrace();
-                           } finally {
-                               cdl.countDown();
-                           }
-                        }
-                    }.start();
-
-                }catch (Exception e){
-                    e.printStackTrace();
-                    break;
-                }
+            List<Article> articles = pageParse.parse(stock.getCode(), stock.getCode());
+            List<Document> docs ;
+            docs = articles.stream().map(a->Document.parse(JSONObject.toJSONString(a))).collect(Collectors.toList());
+            document.insertMany(docs);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            cdl.await();
         }
 
 
