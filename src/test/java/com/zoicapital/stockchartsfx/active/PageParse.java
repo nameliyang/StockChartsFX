@@ -9,6 +9,8 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -18,8 +20,9 @@ public class PageParse {
 
     private static final String BASE_URL = "http://guba.eastmoney.com";
     private static final Integer MAX_PAGE = 100;
-
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(100);
     public List<Article> parse(String code, String name) {
+
         List<Article> articles = Lists.newArrayList();
         int page = 0;
         page:
@@ -68,7 +71,7 @@ public class PageParse {
                 e.printStackTrace();
             }
         }
-        System.out.println("------------------------------->"+page);
+     //   System.out.println("------------------------------->"+page);
         return articles;
     }
 
