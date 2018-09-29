@@ -11,9 +11,13 @@ import com.zoicapital.stockchartsfx.stock.Stocks;
 import org.bson.Document;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class ArticleMongo {
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(100);
+
     public static void main(String[] args) throws InterruptedException {
 //        MongoClient mongoClient =  MongoClients.create(
 //                MongoClientSettings.builder()
@@ -30,8 +34,8 @@ public class ArticleMongo {
 
         MongoCollection<Document> document = test.getCollection("article");
 
-        List<Stock> stocks = new Stocks().getStockList(e ->{
-            if(e.getCode().startsWith("2")|| e.getCode().startsWith("1")||e.getCode().startsWith("5")||e.getName().contains("ST")){
+        List<Stock> stocks = new Stocks().getStockList(e -> {
+            if (e.getCode().startsWith("2") || e.getCode().startsWith("1") || e.getCode().startsWith("5") || e.getName().contains("ST")) {
                 return false;
             }
             return true;
@@ -41,13 +45,17 @@ public class ArticleMongo {
 
         //stocks = stocks.stream().filter(e->e.getCode().equals("600015")).collect(Collectors.toList());
         //600015
-        for(int i = 0;i<stocks.size();i++){
-            Stock stock = stocks.get(i);
-            List<Article> articles = pageParse.parse(stock.getCode(), stock.getCode());
-            List<Document> docs ;
-            docs = articles.stream().map(a->Document.parse(JSONObject.toJSONString(a))).collect(Collectors.toList());
-            document.insertMany(docs);
-            System.out.println("---------------------------------"+(i*100 / stocks.size()));
+        for (int i = 0; i < stocks.size(); i++) {
+            final int j = i;
+            executorService.submit(() -> {
+                Stock stock = stocks.get(j);
+                List<Article> articles = pageParse.parse(stock.getCode(), stock.getCode());
+                List<Document> docs;
+                docs = articles.stream().map(a -> Document.parse(JSONObject.toJSONString(a))).collect(Collectors.toList());
+                document.insertMany(docs);
+                System.out.println("---------------------------------" + (j * 100 / stocks.size()));
+            });
+
         }
 
     }
