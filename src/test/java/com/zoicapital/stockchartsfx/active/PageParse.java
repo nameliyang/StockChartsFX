@@ -59,7 +59,8 @@ public class PageParse {
                     String updateDate = element.getElementsByClass("l5").text();
                     Article article = new Article(Integer.parseInt(readCount), title, null, code, name);
                     article.setCmtURL(BASE_URL + link);
-                    article.setAuthor(author);
+                   // article.setAuthor(author);
+                    article.setAuthor(null);
                     article.setUpdateDate(updateDate);
                     CommentParser<Article> commentParser = new CommentParser<>(article,element);
                     Future future = executorService.submit(commentParser);
@@ -68,9 +69,13 @@ public class PageParse {
                 for(int i = 0;i< values.size();i++){
                     try{
                         Article article = values.get(i).get();
-                        if (article.getCreateTime()==null|| article.getCreateTime().compareTo("2018-01-01 00:00:00") < 0) {
+                        if(article.getCreateTime()==null){
+                            continue ;
+                        }
+                        if (article.getCreateTime().compareTo("2018-02-01 00:00:00") < 0) {
                             for(int j= i+1;i<values.size();i++){
                                 Future<Article> articleFuture = values.get(j);
+                                System.out.println("interrute ------------------->"+i);
                                 articleFuture.cancel(true);
                             }
                             break page;
@@ -121,8 +126,8 @@ public class PageParse {
         String media = createText.substring(index + 1, createText.length());
         String content = doc.select("div[id=zwconbody]").text();
         article.setCreateTime(time.trim());
-        article.setMedia(media.trim());
-        article.setContent(content.trim());
+    //    article.setMedia(media.trim());
+    //    article.setContent(content.trim());
         Elements comments = doc.getElementsByClass("zwli clearfix");
         for (Element element : comments) {
             String name = element.select(".zwlitxt > .zwlianame > .zwnick").text();

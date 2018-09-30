@@ -45,7 +45,7 @@ public class ArticleMongo {
 
         //stocks = stocks.stream().filter(e->e.getCode().equals("600015")).collect(Collectors.toList());
         //600015
-        for (int i = 0; i < stocks.size(); i++) {
+        for (int i = 0; i < 1000; i++) {
             final int j = i;
             executorService.submit(() -> {
                 Stock stock = stocks.get(j);
