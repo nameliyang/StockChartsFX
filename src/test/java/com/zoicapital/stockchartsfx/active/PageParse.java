@@ -9,7 +9,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,10 +25,10 @@ public class PageParse {
 
     private static final String BASE_URL = "http://guba.eastmoney.com";
     private static final Integer MAX_PAGE = 100;
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(100);
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(20);
     
     public List<Article> parse(String code, String name) {
-
+        final Set<String> linkSet = new HashSet<>();
         List<Article> articles = Lists.newArrayList();
         int page = 0;
         page:
@@ -57,6 +59,10 @@ public class PageParse {
                     String commentsCount = element.getElementsByClass("l2").text();
                     String author = element.getElementsByClass("l4").text();
                     String updateDate = element.getElementsByClass("l5").text();
+                    if(linkSet.contains(link)){
+                        continue;
+                    }
+                    linkSet.add(link);
                     Article article = new Article(Integer.parseInt(readCount), title, null, code, name);
                     article.setCmtURL(BASE_URL + link);
                    // article.setAuthor(author);
@@ -73,7 +79,7 @@ public class PageParse {
                             continue ;
                         }
                         if (article.getCreateTime().compareTo("2018-02-01 00:00:00") < 0) {
-                            for(int j= i+1;i<values.size();i++){
+                            for(int j= i+1;j<values.size();j++){
                                 Future<Article> articleFuture = values.get(j);
                                 System.out.println("interrute ------------------->"+i);
                                 articleFuture.cancel(true);
@@ -104,7 +110,6 @@ public class PageParse {
             this.element = element;
         }
 
-
         @Override
         public com.ly.quant.Article call() throws Exception {
             parseComments(null, article);
@@ -114,7 +119,7 @@ public class PageParse {
 
 
     private void parseComments(String commentsCount, Article article) throws IOException {
-        Document doc = Jsoup.connect(article.getCmtURL()).timeout(5000).get();
+        Document doc = Jsoup.connect(article.getCmtURL()).timeout(4000).get();
         Elements zwfbtime = doc.getElementsByClass("zwfbtime");
         if (zwfbtime == null || zwfbtime.size() == 0) {
             return;
@@ -138,11 +143,11 @@ public class PageParse {
     }
 
     public static void main(String[] args) throws IOException {
-        PageParse pageParse = new PageParse();
-        Article article = new Article();
-        article.setCode("");
-        article.setCmtURL("http://guba.eastmoney.com/news,000970,781826314.html");
-        pageParse.parseComments("", article);
+//        PageParse pageParse = new PageParse();
+//        Article article = new Article();
+//        article.setCode("");
+//        article.setCmtURL("http://guba.eastmoney.com/news,000970,781826314.html");
+//        pageParse.parseComments("", article);
 //        PageParse pageParse = necmd
 //
 //

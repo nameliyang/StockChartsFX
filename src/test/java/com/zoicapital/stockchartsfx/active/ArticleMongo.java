@@ -16,7 +16,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class ArticleMongo {
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(100);
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(1);
 
     public static void main(String[] args) throws InterruptedException {
 //        MongoClient mongoClient =  MongoClients.create(
@@ -46,18 +46,15 @@ public class ArticleMongo {
         //stocks = stocks.stream().filter(e->e.getCode().equals("600015")).collect(Collectors.toList());
         //600015
         for (int i = 0; i < 1000; i++) {
-            final int j = i;
-            executorService.submit(() -> {
-                Stock stock = stocks.get(j);
-                List<Article> articles = pageParse.parse(stock.getCode(), stock.getCode());
+            final Stock stock = stocks.get(i);
+            executorService.execute(() -> {
+                List<Article> articles = pageParse.parse(stock.getCode(), stock.getName());
                 List<Document> docs;
                 docs = articles.stream().map(a -> Document.parse(JSONObject.toJSONString(a))).collect(Collectors.toList());
                 document.insertMany(docs);
-                System.out.println("---------------------------------" + (j * 100 / stocks.size()));
             });
-
+            System.out.println("==============================>" + (i * 100 / stocks.size()));
         }
-
     }
 
 }
