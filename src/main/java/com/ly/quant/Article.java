@@ -29,11 +29,14 @@ public class Article {
 
     private String createDate;
 
+
     private String content;
 
     private String createTime;
 
     private String media;
+
+    private Integer commentCount;
     private List<Comment> comments = new ArrayList<>();
 
     public Article() {
