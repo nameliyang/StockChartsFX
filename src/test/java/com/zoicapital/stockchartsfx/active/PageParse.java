@@ -44,63 +44,82 @@ public class PageParse {
                 String link = null;
                 List<Future<Article>> values = new ArrayList<>();
                 for(int i = 0;i<articleh.size();i++){
-                    Element element = articleh.get(i);
-                    if ("ad_topic".equals(element.attr("id"))) {
-                        continue;
-                    }
-                    Element el3 = element.getElementsByClass("l3").get(0);
-                    Elements anEnum = el3.getElementsByTag("em");
-                    String title = null;
-                    if (anEnum != null && anEnum.size() > 0) {
-                        String text = anEnum.get(0).text();
-                        if (tag.contains(text)) {
+
+                    try{
+                        Element element = articleh.get(i);
+                        if ("ad_topic".equals(element.attr("id"))) {
                             continue;
                         }
-                    }
-                    Element titleEle = el3.getElementsByTag("a").get(0);
-                    link = titleEle.attr("href");
-                    title = titleEle.attr("title");
-                    String readCount = element.getElementsByClass("l1").text();
-                    String commentsCount = element.getElementsByClass("l2").text();
-                    String author = element.getElementsByClass("l4").text();
-                    String updateDate = element.getElementsByClass("l5").text();
-                    String createDate = element.getElementsByClass("l6").text();
-                    if(linkSet.contains(link)){
-                        continue;
-                    }
-                    linkSet.add(link);
-                    Article article = new Article(Integer.parseInt(readCount), title, null, code, name);
-                    article.setCmtURL(BASE_URL + link);
-                    // article.setAuthor(author);
-                    article.setAuthor(null);
-                    article.setUpdateDate(updateDate);
-                    if(firstFlag){
-                        CommentParser<Article> commentParser = new CommentParser<>(article,element);
-                        Article firstArticle = commentParser.call();
-                        if(firstArticle.getCreateTime().compareTo(DEAD_TIME)>=0){
-                            articles.add(firstArticle);
+                        Element el3 = element.getElementsByClass("l3").get(0);
+                        Elements anEnum = el3.getElementsByTag("em");
+                        String title = null;
+                        if (anEnum != null && anEnum.size() > 0) {
+                            String text = anEnum.get(0).text();
+                            if (tag.contains(text)) {
+                                continue;
+                            }
                         }
-
-                        String createTime = firstArticle.getCreateTime();
-                        Article lastArticle =  getLastArticle(articleh.get(articleh.size()-1),code,name);
-
-                        commentParser = new CommentParser<>(lastArticle,articleh.get(articleh.size()-1));
-                        lastArticle = commentParser.call();
-                        String lastCreatedTime = lastArticle.getCreateTime();
-                        if(lastCreatedTime.compareTo(DEAD_TIME)<=0){
-                            shouldParaseAll = true;
+                        Element titleEle = el3.getElementsByTag("a").get(0);
+                        link = titleEle.attr("href");
+                        title = titleEle.attr("title");
+                        String readCount = element.getElementsByClass("l1").text();
+                        String commentsCount = element.getElementsByClass("l2").text();
+                        String author = element.getElementsByClass("l4").text();
+                        String updateDate = element.getElementsByClass("l5").text();
+                        String createDate = element.getElementsByClass("l6").text();
+                        if(linkSet.contains(link)){
+                            continue;
                         }
-                        firstFlag = false;
-                    }else{
-                        if(shouldParaseAll){
+                        linkSet.add(link);
+                        Article article = new Article(Integer.parseInt(readCount), title, null, code, name);
+                        article.setCmtURL(BASE_URL + link);
+                        // article.setAuthor(author);
+                        article.setAuthor(null);
+                        article.setUpdateDate(updateDate);
+                        article.setCommentCount(Integer.parseInt(commentsCount));
+                        if(firstFlag){
                             CommentParser<Article> commentParser = new CommentParser<>(article,element);
-                            article = commentParser.call();
+                            Article firstArticle = commentParser.call();
+                            if(firstArticle.getCreateTime()==null){
+                                firstArticle.setCreateTime("2018-"+createDate);
+                            }
+                            if(firstArticle.getCreateTime().compareTo(DEAD_TIME)>=0){
+                                articles.add(firstArticle);
+                            }
+                            String createTime = firstArticle.getCreateTime();
+                            Article lastArticle =  getLastArticle(articleh.get(articleh.size()-1),code,name);
+                            lastArticle  = lastArticle==null||lastArticle.getCreateTime()==null?  getLastArticle(articleh.get(articleh.size()-2),code,name):lastArticle;
+                            lastArticle  = lastArticle==null||lastArticle.getCreateTime()==null?  getLastArticle(articleh.get(articleh.size()-3),code,name):lastArticle;
+                            lastArticle  = lastArticle==null||lastArticle.getCreateTime()==null?  getLastArticle(articleh.get(articleh.size()-4),code,name):lastArticle;
+                            lastArticle  = lastArticle==null||lastArticle.getCreateTime()==null?  getLastArticle(articleh.get(articleh.size()-5),code,name):lastArticle;
+                            lastArticle  = lastArticle==null||lastArticle.getCreateTime()==null?  getLastArticle(articleh.get(articleh.size()-6),code,name):lastArticle;
+                            lastArticle  = lastArticle==null||lastArticle.getCreateTime()==null?  getLastArticle(articleh.get(articleh.size()-7),code,name):lastArticle;
+                            lastArticle  = lastArticle==null||lastArticle.getCreateTime()==null?  getLastArticle(articleh.get(articleh.size()-8),code,name):lastArticle;
+                            commentParser = new CommentParser<>(lastArticle,articleh.get(articleh.size()-1));
+                            if(lastArticle.getCreateTime()==null){
+                                System.out.println("debug -------------------->"+element);
+                            }
+                            lastArticle = commentParser.call();
+                            String lastCreatedTime = lastArticle.getCreateTime();
+                            if(lastCreatedTime.compareTo(DEAD_TIME)<=0){
+                                shouldParaseAll = true;
+                            }
+                            firstFlag = false;
                         }else{
-                            article.setCreateTime("2018-"+createDate);
+                            if(shouldParaseAll){
+                                CommentParser<Article> commentParser = new CommentParser<>(article,element);
+                                article = commentParser.call();
+                                if(article.getCreateTime().compareTo(DEAD_TIME)<=0){
+                                    break page;
+                                }
+                            }else{
+                                article.setCreateTime("2018-"+createDate);
+                            }
+                            articles.add(article);
                         }
-                        articles.add(article);
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
-
                     //values.add(future);
                 }
 //                for(int i = 0;i< values.size();i++){
@@ -132,7 +151,7 @@ public class PageParse {
         return articles;
     }
 
-    private Article getLastArticle(Element element,String code,String name) {
+    private Article getLastArticle(Element element,String code,String name) throws Exception {
         Element el3 = element.getElementsByClass("l3").get(0);
         Elements anEnum = el3.getElementsByTag("em");
         String title = null;
@@ -161,7 +180,9 @@ public class PageParse {
         // article.setAuthor(author);
         article.setAuthor(null);
         article.setUpdateDate(updateDate);
-        return article;
+        CommentParser<Article> commentParser = new CommentParser<>(article,element);
+        Article rtn = commentParser.call();
+        return rtn;
     }
 
     class CommentParser<Article> implements Callable{
@@ -184,11 +205,7 @@ public class PageParse {
 
     private void parseComments(String commentsCount, Article article) throws IOException {
         Document doc = null;
-        try{
               doc = Jsoup.connect(article.getCmtURL()).timeout(4000).get();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
 
         Elements zwfbtime = doc.getElementsByClass("zwfbtime");
         if (zwfbtime == null || zwfbtime.size() == 0) {

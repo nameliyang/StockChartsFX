@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 public class ArticleMongo {
-    private static final ExecutorService executorService = Executors.newFixedThreadPool(1);
+    private static final ExecutorService executorService = Executors.newFixedThreadPool(50);
 
     public static void main(String[] args) throws InterruptedException {
 //        MongoClient mongoClient =  MongoClients.create(
@@ -43,24 +43,26 @@ public class ArticleMongo {
             return true;
         }).value();
 
-        stocks = stocks.stream().filter(e->e.getCode().equals("000970")).collect(Collectors.toList());
+    //    stocks = stocks.stream().filter(e->e.getCode().equals("000970")).collect(Collectors.toList());
         PageParse pageParse = new PageParse();
 
-        //stocks = stocks.s tream().filter(e->e.getCode().equals("600015")).collect(Collectors.toList());
-        //600015
-        for (int i = 0; i < 1000; i++) {
-            final Stock stock = stocks.get(i);
-            List<Article> articles = pageParse.parse(stock.getCode(), stock.getName());
-            groupDateArticle(articles);
-            List<Document> docs;
-            docs = articles.stream().map(a -> Document.parse(JSONObject.toJSONString(a))).collect(Collectors.toList());
+        for (int i = 0; i < stocks.size(); i++) {
+            final int j = i;
+            executorService.submit(()->{
+                final Stock stock = stocks.get(j);
+                List<Article> articles = pageParse.parse(stock.getCode(), stock.getName());
+                articles = groupDateArticle(articles);
+                articles.forEach(e ->{e.setCode(stock.getCode());e.setName(stock.getName());});
+                List<Document> docs;
+                docs = articles.stream().map(a -> Document.parse(JSONObject.toJSONString(a))).collect(Collectors.toList());
+                document.insertMany(docs);
+                System.out.println("==============================>" + (j * 100 / stocks.size()));
+            });
 
-            document.insertMany(docs);
-            System.out.println("==============================>" + (i * 100 / stocks.size()));
         }
     }
 
-    private static void groupDateArticle(List<Article> articles) {
+    private static List<Article> groupDateArticle(List<Article> articles) {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Iterator<Article> iterator = articles.iterator();
         while(iterator.hasNext()){
@@ -69,7 +71,7 @@ public class ArticleMongo {
                 iterator.remove();
             }
             String createTime = article.getCreateTime();
-            article.setCreateTime(sdf.format(new Date()));
+          //  article.setCreateTime(sdf.format(new Date()));
             article.setDate(createTime.substring(0,10));
         }
 
@@ -82,6 +84,7 @@ public class ArticleMongo {
             List<Article> value = entry.getValue();
             rtnAticle.add(collectList(key,value));
         }
+        return rtnAticle;
     }
 
     private static Article collectList(String date,List<Article> value) {
@@ -89,8 +92,9 @@ public class ArticleMongo {
         Integer commentCount = new Integer(0);
         for(int i = 0;i<value.size();i++){
             Article article = value.get(i);
-            readCount+=article.getReadCount();
-            commentCount+=article.getCommentCount();
+            System.out.println("i = "+i);
+            readCount+= article.getReadCount();
+            commentCount+= article.getCommentCount();
         }
         Article article = new Article();
         article.setDate(date);
