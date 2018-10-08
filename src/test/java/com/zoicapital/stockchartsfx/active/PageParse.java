@@ -26,11 +26,15 @@ public class PageParse {
     private static final String BASE_URL = "http://guba.eastmoney.com";
     private static final Integer MAX_PAGE = 100;
     private static final ExecutorService executorService = Executors.newFixedThreadPool(20);
+
+    private static final String DEAD_TIME = "2018-02-01 00:00:00";
     
     public List<Article> parse(String code, String name) {
         final Set<String> linkSet = new HashSet<>();
         List<Article> articles = Lists.newArrayList();
         int page = 0;
+        boolean firstFlag = true;
+        boolean shouldParaseAll = false;
         page:
         for (; page < MAX_PAGE; page++) {
             try {
@@ -39,9 +43,6 @@ public class PageParse {
                 Elements articleh = articlelistnew.getElementsByClass("articleh");
                 String link = null;
                 List<Future<Article>> values = new ArrayList<>();
-
-                boolean firstFlag = true;
-                boolean shouldParaseAll = false;
                 for(int i = 0;i<articleh.size();i++){
                     Element element = articleh.get(i);
                     if ("ad_topic".equals(element.attr("id"))) {
@@ -63,6 +64,7 @@ public class PageParse {
                     String commentsCount = element.getElementsByClass("l2").text();
                     String author = element.getElementsByClass("l4").text();
                     String updateDate = element.getElementsByClass("l5").text();
+                    String createDate = element.getElementsByClass("l6").text();
                     if(linkSet.contains(link)){
                         continue;
                     }
@@ -75,43 +77,56 @@ public class PageParse {
                     if(firstFlag){
                         CommentParser<Article> commentParser = new CommentParser<>(article,element);
                         Article firstArticle = commentParser.call();
+                        if(firstArticle.getCreateTime().compareTo(DEAD_TIME)>=0){
+                            articles.add(firstArticle);
+                        }
+
                         String createTime = firstArticle.getCreateTime();
                         Article lastArticle =  getLastArticle(articleh.get(articleh.size()-1),code,name);
 
                         commentParser = new CommentParser<>(lastArticle,articleh.get(articleh.size()-1));
                         lastArticle = commentParser.call();
                         String lastCreatedTime = lastArticle.getCreateTime();
-                        if(lastCreatedTime.compareTo("2018-02-01 00:00:00")<=0){
+                        if(lastCreatedTime.compareTo(DEAD_TIME)<=0){
                             shouldParaseAll = true;
                         }
                         firstFlag = false;
-                    }
-                    //values.add(future);
-                }
-
-
-                for(int i = 0;i< values.size();i++){
-                    try{
-                        Article article = values.get(i).get();
-                        if(article.getCreateTime()==null){
-                            continue ;
-                        }
-                        if (article.getCreateTime().compareTo("2018-02-01 00:00:00") < 0) {
-                            for(int j= i+1;j<values.size();j++){
-                                Future<Article> articleFuture = values.get(j);
-                                System.out.println("interrute ------------------->"+i);
-                                articleFuture.cancel(true);
-                            }
-                            break page;
+                    }else{
+                        if(shouldParaseAll){
+                            CommentParser<Article> commentParser = new CommentParser<>(article,element);
+                            article = commentParser.call();
+                        }else{
+                            article.setCreateTime("2018-"+createDate);
                         }
                         articles.add(article);
-                    }catch (Exception e){
-                        e.printStackTrace();
                     }
+
+                    //values.add(future);
                 }
+//                for(int i = 0;i< values.size();i++){
+//                    try{
+//                        Article article = values.get(i).get();
+//                        if(article.getCreateTime()==null){
+//                            continue ;
+//                        }
+//                        if (article.getCreateTime().compareTo("2018-02-01 00:00:00") < 0) {
+//                            for(int j= i+1;j<values.size();j++){
+//                                Future<Article> articleFuture = values.get(j);
+//                                System.out.println("interrute ------------------->"+i);
+//                                articleFuture.cancel(true);
+//                            }
+//                            break page;
+//                        }
+//                        articles.add(article);
+//                    }catch (Exception e){
+//                        e.printStackTrace();
+//                    }
+//                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
+              firstFlag = true;
+              shouldParaseAll = false;
         }
      //   System.out.println("------------------------------->"+page);
         return articles;
@@ -121,12 +136,14 @@ public class PageParse {
         Element el3 = element.getElementsByClass("l3").get(0);
         Elements anEnum = el3.getElementsByTag("em");
         String title = null;
-//        if (anEnum != null && anEnum.size() > 0) {
-//            String text = anEnum.get(0).text();
-//            if (tag.contains(text)) {
-//                continue;
-//            }
-//        }
+
+        boolean normalURL=true;
+        if (anEnum != null && anEnum.size() > 0) {
+            String text = anEnum.get(0).text();
+            if (tag.contains(text)) {
+                return null;
+            }
+        }
         Element titleEle = el3.getElementsByTag("a").get(0);
         String link = titleEle.attr("href");
         title = titleEle.attr("title");
@@ -135,7 +152,12 @@ public class PageParse {
         String author = element.getElementsByClass("l4").text();
         String updateDate = element.getElementsByClass("l5").text();
         Article article = new Article(Integer.parseInt(readCount), title, null, code, name);
-        article.setCmtURL(BASE_URL + link);
+        if(normalURL) {
+            article.setCmtURL(BASE_URL + link);
+        }else{
+            article.setCmtURL(link);
+        }
+
         // article.setAuthor(author);
         article.setAuthor(null);
         article.setUpdateDate(updateDate);
@@ -161,7 +183,13 @@ public class PageParse {
 
 
     private void parseComments(String commentsCount, Article article) throws IOException {
-        Document doc = Jsoup.connect(article.getCmtURL()).timeout(4000).get();
+        Document doc = null;
+        try{
+              doc = Jsoup.connect(article.getCmtURL()).timeout(4000).get();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
         Elements zwfbtime = doc.getElementsByClass("zwfbtime");
         if (zwfbtime == null || zwfbtime.size() == 0) {
             return;

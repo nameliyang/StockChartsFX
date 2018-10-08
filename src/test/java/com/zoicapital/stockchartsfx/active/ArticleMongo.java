@@ -43,6 +43,7 @@ public class ArticleMongo {
             return true;
         }).value();
 
+        stocks = stocks.stream().filter(e->e.getCode().equals("000970")).collect(Collectors.toList());
         PageParse pageParse = new PageParse();
 
         //stocks = stocks.s tream().filter(e->e.getCode().equals("600015")).collect(Collectors.toList());
