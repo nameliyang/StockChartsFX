@@ -27,7 +27,7 @@ public class PageParse {
     private static final Integer MAX_PAGE = 100;
     private static final ExecutorService executorService = Executors.newFixedThreadPool(20);
 
-    private static final String DEAD_TIME = "2018-02-01 00:00:00";
+    private static final String DEAD_TIME = "2018-10-08 00:00:00";
     
     public List<Article> parse(String code, String name) {
         final Set<String> linkSet = new HashSet<>();
