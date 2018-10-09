@@ -37,13 +37,13 @@ public class ArticleMongo {
         MongoCollection<Document> document = test.getCollection("article");
 
         List<Stock> stocks = new Stocks().getStockList(e -> {
-            if (e.getCode().startsWith("2") || e.getCode().startsWith("1") || e.getCode().startsWith("5") || e.getName().contains("ST")) {
+            if (e.getCode().startsWith("2") || e.getCode().startsWith("1") || e.getCode().startsWith("5") || e.getName().contains("ST")||e.getCode().startsWith("9")) {
                 return false;
             }
             return true;
         }).value();
 
-    //    stocks = stocks.stream().filter(e->e.getCode().equals("000970")).collect(Collectors.toList());
+        //    stocks = stocks.stream().filter(e->e.getCode().equals("000970")).collect(Collectors.toList());
         PageParse pageParse = new PageParse();
 
         for (int i = 0; i < stocks.size(); i++) {

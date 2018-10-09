@@ -1,5 +1,8 @@
 package com.zoicapital.stockchartsfx.active;
 
+import com.zoicapital.stockchartsfx.Stock;
+import com.zoicapital.stockchartsfx.stock.Stocks;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -10,9 +13,13 @@ public class Java8 {
 
     public static void main(String[] args) {
 
-        List<Person> persons = Stream.of(new Person("1"), new Person("2")).collect(Collectors.toList());
-
-        persons.stream().flatMapToInt(e-> IntStream.of(Integer.parseInt(e.name)));
+        List<Stock> stocks = new Stocks().getStockList(e -> {
+            if (e.getCode().startsWith("2") || e.getCode().startsWith("1") || e.getCode().startsWith("5") || e.getName().contains("ST")||e.getCode().startsWith("9")) {
+                return false;
+            }
+            return true;
+        }).value();
+        stocks.forEach(e-> System.out.println(e.getCode()+e.getName()));
 
     }
 }
