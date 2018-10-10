@@ -38,7 +38,8 @@ public class ActiveStockQuant {
             FindIterable<Document> iterable = document.find(new Document("date", date)).sort(new Document("commentCount", -1)).limit(1);
             iterable.forEach((Block<Document>) doc -> {
                 String code = doc.getString("code");
-                String name = doc.getString("name");
+                String name = doc.getString("name").length()==3 ?doc.getString("name")+"　":doc.getString("name");
+                name = doc.getString("name").length()==2 ?doc.getString("name")+"　　":name;
                 System.out.print(code + "\t" + name + "\t" + date);
                 try {
                     int index = dates.indexOf(date);
@@ -50,16 +51,20 @@ public class ActiveStockQuant {
                             if(dailyStocks.size()==4){
                                 StringBuilder sb = new StringBuilder();
                                 final String close = dailyStocks.get(0).getTCLOSE();
+                                if(Double.parseDouble(close)==0.0){
+                                    System.out.println();
+                                    return;
+                                }
                                 dailyStocks =  dailyStocks.subList(1,dailyStocks.size());
-                                sb.append("\t").append(close);
+                                sb.append("\t").append(String.format("%4s",close));
                                 List<String> allData = new ArrayList<>();
                                 dailyStocks.forEach(d ->{
-                                    allData.add(d.getTCLOSE());
-                                    sb.append("\t").append(d.getDate()).append("(").append(d.getTOPEN()).append(",").append(d.getTCLOSE()).append(")");
+                                    allData.add(String.format("%4s",d.getTCLOSE()));
+                                    sb.append("\t").append(d.getDate()).append("(").append(String.format("%4s",d.getTOPEN())).append(",").append(String.format("%4s",d.getTCLOSE())).append(")");
                                 });
                                 Boolean buySuccess = Boolean.FALSE;
                                 for(String price:allData){
-                                    if(price.compareTo(close)> 0){
+                                    if(Double.parseDouble(price) > Double.parseDouble(close)){
                                         buySuccess = Boolean.TRUE;
                                         break;
                                     }
@@ -77,8 +82,11 @@ public class ActiveStockQuant {
                 System.out.println();
             });
         });
+    }
 
+    public String format(String price){
 
+        return null;
     }
 
 }
