@@ -86,7 +86,8 @@ public class StockHistory {
 
         CsvReader csvReader = new CsvReader(inputStream, Charset.forName("GBK"));
         // 读表头
-        System.out.println(csvReader.readHeaders());
+        csvReader.readHeaders();
+      //  System.out.println();
         List<DailyStock> dailyStockList = new ArrayList<DailyStock>();
         while (csvReader.readRecord()){
             DailyStock stock = new DailyStock();
