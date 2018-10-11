@@ -139,17 +139,7 @@ public class LineCharTest extends Application{
         }
     }
 
-    public static  String code2Symbol(String code){
-        List<String> shList = Stream.of("5", "6", "9").collect(Collectors.toList());
-        List<String> shList_1 = Stream.of("11", "13").collect(Collectors.toList());
-        String symbol = null;
-        if(shList.contains(code.substring(0,1)) || shList_1.contains(code)){
-            symbol = "sh"+code;
-        }else{
-            symbol = "sz"+code;
-        }
-        return symbol;
-    }
+
 }
 
 
